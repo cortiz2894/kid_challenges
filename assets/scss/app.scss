@@ -1,0 +1,14 @@
+@charset "utf-8";
+
+/* App styles */
+@import "app/vars";
+@import "app/fonts";
+
+/* Mixins */
+@import "mixin/main";
+
+/* Core styles */
+@import "core/reset";
+@import "core/lenis.scroll";
+@import "core/basics";
+@import "core/swal";

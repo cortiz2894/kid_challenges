@@ -1,0 +1,23 @@
+@-webkit-keyframes soundWave {
+  0% {
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+  }
+
+  to {
+    -webkit-transform: translateX(-63px);
+    transform: translateX(-63px);
+  }
+}
+
+@keyframes soundWave {
+  0% {
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+  }
+
+  to {
+    -webkit-transform: translateX(-63px);
+    transform: translateX(-63px);
+  }
+}
