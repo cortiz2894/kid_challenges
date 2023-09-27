@@ -5,11 +5,13 @@
                 v-for="i in items"
                 :key="i"
                 class="item-slide"
-                :class="{ active: i.active, next: i.next }"
-                :ref="{ active: i.active }"
+                :class="{ active: i.active, next: i.next, prev: i.prev }"
+                :ref="`slide-${i.id}`"
             >
-                <p>{{ i.copy }}</p>
-                <img :src="`img/${i.image}.jpeg`" />
+                <div class="container-slide">
+                    <p class="split" :ref="i.id">{{ i.copy }}</p>
+                    <img :ref="`image-${i.id}`" :src="`img/${i.image}.jpeg`" />
+                </div>
             </li>
         </ul>
         <div class="tabs-container">
@@ -19,12 +21,13 @@
                     :key="item.title"
                     class="item-tab"
                     :class="{ active: item.active }"
+                    @click="GoTo(item.id)"
                 >
                     <span>{{ `0${item.id}` }}</span>
                     <p>{{ item.title }}</p>
                 </li>
             </ul>
-            <div class="action-btn" @click="next">
+            <div class="action-btn" @click="GoTo('next')">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="32"
@@ -43,7 +46,11 @@
 
 <script>
 import { gsap } from "gsap";
-
+// xt } from "gsap/all";
+import SplitText from "gsap-trial/SplitText";
+if (process.client) {
+    gsap.registerPlugin(SplitText);
+}
 export default {
     props: ["items"],
     data() {
@@ -89,27 +96,64 @@ export default {
             Math.abs(this.currentIndex) % this.items.length
         ].active = true;
     },
+    setup() {
+        const price = ref(10);
+        watchEffect(() => console.log(price.value));
+        return {
+            price,
+        };
+    },
     methods: {
-        next: function () {
-            //make refator here
-            this.currentIndex += 1;
-            delete this.items[
-                Math.abs(this.currentIndex - 1) % this.items.length
-            ].active;
+        GoTo: function (id) {
+            let actualValue;
+            if (id === "next") {
+                actualValue =
+                    Math.abs(this.currentIndex + 2) % this.items.length === 0
+                        ? 5
+                        : Math.abs(this.currentIndex + 2) % this.items.length;
+            } else {
+                actualValue = id;
+            }
+
+            id === "next"
+                ? (this.currentIndex += 1)
+                : (this.currentIndex = id - 1);
+
+            this.items.forEach((object) => {
+                delete object["active"];
+                delete object["next"];
+                delete object["prev"];
+            });
             this.items[
                 Math.abs(this.currentIndex) % this.items.length
             ].active = true;
-            delete this.items[Math.abs(this.currentIndex) % this.items.length]
-                .next;
-            this.items[
-                Math.abs(this.currentIndex + 1) % this.items.length
-            ].next = true;
+            if (id !== "next") {
+                this.items[id + 1].next = true;
+                this.items[id - 2].prev = true;
+            } else {
+                this.items[
+                    Math.abs(this.currentIndex - 1) % this.items.length
+                ].prev = true;
+                this.items[
+                    Math.abs(this.currentIndex + 1) % this.items.length
+                ].next = true;
+            }
 
             //animate
-            gsap.to(this.$refs.active, {
-                scale: 20,
-                duration: 0.4,
+            const tl = gsap.timeline();
+            let splitTitle = new SplitText(this.$refs[actualValue], {
+                type: "lines",
             });
+            let lines = splitTitle.lines;
+            tl.from(lines, {
+                duration: 1,
+                opacity: 0,
+                y: -10,
+                delay: 0.8,
+                ease: "back",
+                stagger: 0.2,
+            });
+            // tl.restart();
         },
     },
 };
@@ -134,21 +178,33 @@ export default {
         top: 0;
         right: 0;
         display: flex;
-        justify-content: center;
+        justify-content: flex-end;
         overflow: hidden;
         min-width: 0;
         z-index: 0;
-
         img {
             height: 100%;
+            object-fit: cover;
+            object-position: 100% 0;
+            // width: 0;
         }
+        // &:nth-of-type(1) {
+        //     z-index: 1;
+        //     img {
+        //         width: 400px;
+        //     }
+        // }
         p {
             position: absolute;
             color: white;
             width: 100%;
             padding: 0.7em 0.5em;
             font-weight: 800;
-            font-size: 2em;
+            font-size: 3em;
+            transform: translateY(-10px);
+            // transition: opacity 0.2s ease-out;
+            transition-delay: 0s;
+            left: 0;
             background: linear-gradient(
                 180deg,
                 rgba(0, 0, 0, 0.72) 13%,
@@ -156,15 +212,32 @@ export default {
             );
         }
         &.active {
-            z-index: 1;
-            width: 100%;
-            transition: width 0.5s ease-in-out;
+            z-index: 2;
+
+            img {
+                transition: width 0.8s ease-in-out;
+                width: 400px;
+            }
+            p {
+                // transform: translateY(0px);
+                // opacity: 1;
+                // transition: opacity 0.5s ease-out;
+                // transition-delay: 0.5s;
+            }
         }
         &.next {
-            width: 0;
-            z-index: 3;
+            img {
+                width: 0;
+            }
             & + li {
                 display: none;
+            }
+        }
+        &.prev {
+            z-index: 1;
+            img {
+                transform: translateX(-30%);
+                transition: transform 1s ease-out;
             }
         }
     }
