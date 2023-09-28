@@ -81,8 +81,10 @@ export default {
                 copy: "Return of the jedi",
             },
         ];
+        let lines = [];
         return {
             items,
+            lines,
             timer: null,
             currentIndex: 0,
             prevIndex: items.length,
@@ -95,30 +97,29 @@ export default {
         this.items[
             Math.abs(this.currentIndex) % this.items.length
         ].active = true;
-    },
-    setup() {
-        const price = ref(10);
-        watchEffect(() => console.log(price.value));
-        return {
-            price,
-        };
+        //animate
+        this.items.map((value, key) => {
+            console.log("map: ", value.id);
+
+            let splitItems = new SplitText(this.$refs[value.id], {
+                type: "lines",
+            });
+            gsap.to(splitItems.lines, {
+                y: -10,
+                opacity: 0,
+            });
+            this.lines.push(splitItems.lines);
+        });
+        gsap.to(this.lines[0], {
+            y: 0,
+            opacity: 1,
+        });
     },
     methods: {
         GoTo: function (id) {
-            let actualValue;
-            if (id === "next") {
-                actualValue =
-                    Math.abs(this.currentIndex + 2) % this.items.length === 0
-                        ? 5
-                        : Math.abs(this.currentIndex + 2) % this.items.length;
-            } else {
-                actualValue = id;
-            }
-
             id === "next"
                 ? (this.currentIndex += 1)
                 : (this.currentIndex = id - 1);
-
             this.items.forEach((object) => {
                 delete object["active"];
                 delete object["next"];
@@ -127,33 +128,34 @@ export default {
             this.items[
                 Math.abs(this.currentIndex) % this.items.length
             ].active = true;
-            if (id !== "next") {
-                this.items[id + 1].next = true;
-                this.items[id - 2].prev = true;
-            } else {
-                this.items[
-                    Math.abs(this.currentIndex - 1) % this.items.length
-                ].prev = true;
-                this.items[
-                    Math.abs(this.currentIndex + 1) % this.items.length
-                ].next = true;
-            }
-
-            //animate
-            const tl = gsap.timeline();
-            let splitTitle = new SplitText(this.$refs[actualValue], {
-                type: "lines",
-            });
-            let lines = splitTitle.lines;
-            tl.from(lines, {
-                duration: 1,
-                opacity: 0,
-                y: -10,
-                delay: 0.8,
-                ease: "back",
-                stagger: 0.2,
-            });
-            // tl.restart();
+            this.items[
+                Math.abs(this.currentIndex - 1) % this.items.length
+            ].prev = true;
+            this.items[
+                Math.abs(this.currentIndex + 1) % this.items.length
+            ].next = true;
+            gsap.to(
+                this.lines[
+                    (Math.abs(this.currentIndex) % this.items.length) - 1
+                ],
+                {
+                    opacity: 0,
+                    y: -10,
+                    ease: "back",
+                    stagger: 0.2,
+                }
+            );
+            gsap.to(
+                this.lines[Math.abs(this.currentIndex) % this.items.length],
+                {
+                    duration: 1,
+                    opacity: 1,
+                    y: 0,
+                    delay: 0.8,
+                    ease: "back",
+                    stagger: 0.2,
+                }
+            );
         },
     },
 };
@@ -186,14 +188,7 @@ export default {
             height: 100%;
             object-fit: cover;
             object-position: 100% 0;
-            // width: 0;
         }
-        // &:nth-of-type(1) {
-        //     z-index: 1;
-        //     img {
-        //         width: 400px;
-        //     }
-        // }
         p {
             position: absolute;
             color: white;
@@ -202,7 +197,6 @@ export default {
             font-weight: 800;
             font-size: 3em;
             transform: translateY(-10px);
-            // transition: opacity 0.2s ease-out;
             transition-delay: 0s;
             left: 0;
             background: linear-gradient(
@@ -218,12 +212,6 @@ export default {
                 transition: width 0.8s ease-in-out;
                 width: 400px;
             }
-            p {
-                // transform: translateY(0px);
-                // opacity: 1;
-                // transition: opacity 0.5s ease-out;
-                // transition-delay: 0.5s;
-            }
         }
         &.next {
             img {
@@ -238,6 +226,9 @@ export default {
             img {
                 transform: translateX(-30%);
                 transition: transform 1s ease-out;
+            }
+            p {
+                z-index: 2;
             }
         }
     }
