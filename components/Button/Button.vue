@@ -15,23 +15,26 @@
                 />
             </svg>
         </div>
-        <button class="btn" ref="btn">
+
+        <NuxtLink :to="href" class="btn" ref="btn" v-if="!target">
             {{ content }}
-        </button>
+        </NuxtLink>
+        <a :href="href" class="btn" ref="btn" v-else :target="target">
+            {{ content }}
+        </a>
     </div>
 </template>
 
 <script>
 import { gsap } from "gsap";
-
 export default {
-    props: ["content"],
+    props: ["content", "href", "target"],
     data() {
         const tl = "";
         return { tl };
     },
     mounted() {
-        const { circle, icon, btn } = this.$refs;
+        const { circle, icon } = this.$refs;
         this.tl = gsap
             .timeline({ paused: true })
             .to(circle, {
@@ -48,14 +51,6 @@ export default {
                 {
                     x: 0,
                     ease: "Power4.easeOut",
-                },
-                0
-            )
-            .to(
-                btn,
-                {
-                    x: 12,
-                    duration: 0.25,
                 },
                 0
             );
@@ -81,6 +76,8 @@ export default {
     margin-right: 1em;
     &:hover {
         .btn {
+            transform: translateX(12px);
+            transition-delay: 0s;
             &:before {
                 width: 0%;
             }
@@ -109,7 +106,11 @@ export default {
     background: none;
     position: relative;
     padding: 0px;
+    color: currentColor;
     cursor: pointer;
+    transform: translateX(0px);
+    transition: transform 0.25s ease-in-out;
+    transition-delay: 0.35s;
     &:before {
         content: "";
         width: 100%;

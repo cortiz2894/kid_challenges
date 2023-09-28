@@ -1,9 +1,12 @@
 <template>
     <div class="container-btn">
         <div class="background"></div>
-        <button class="btn">
+        <NuxtLink :to="href" class="btn" ref="btn" v-if="!target">
             {{ content }}
-        </button>
+        </NuxtLink>
+        <a :href="href" class="btn" ref="btn" v-else :target="target">
+            {{ content }}
+        </a>
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
@@ -19,10 +22,8 @@
 </template>
 
 <script>
-import { gsap } from "gsap";
-
 export default {
-    props: ["content"],
+    props: ["content", "href", "target"],
     mounted() {},
     methods: {},
 };

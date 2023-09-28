@@ -2,22 +2,21 @@
     <section class="slider">
         <ul>
             <li
-                v-for="i in items"
+                v-for="i in itemsData"
                 :key="i"
                 class="item-slide"
                 :class="{ active: i.active, next: i.next, prev: i.prev }"
-                :ref="`slide-${i.id}`"
             >
                 <div class="container-slide">
                     <p class="split" :ref="i.id">{{ i.copy }}</p>
-                    <img :ref="`image-${i.id}`" :src="`img/${i.image}.jpeg`" />
+                    <img :src="`img/${i.image}.jpeg`" />
                 </div>
             </li>
         </ul>
         <div class="tabs-container">
             <ul class="tabs">
                 <li
-                    v-for="item in items"
+                    v-for="item in itemsData"
                     :key="item.title"
                     class="item-tab"
                     :class="{ active: item.active }"
@@ -30,9 +29,9 @@
             <div class="action-btn" @click="GoTo('next')">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
+                    width="40"
+                    height="40"
+                    viewBox="0 0 32 32"
                 >
                     <path
                         fill="currentColor"
@@ -46,7 +45,6 @@
 
 <script>
 import { gsap } from "gsap";
-// xt } from "gsap/all";
 import SplitText from "gsap-trial/SplitText";
 if (process.client) {
     gsap.registerPlugin(SplitText);
@@ -54,53 +52,24 @@ if (process.client) {
 export default {
     props: ["items"],
     data() {
-        const items = [
-            {
-                id: 1,
-                title: "Movie",
-                image: "img1",
-                copy: "The phantom menace",
-            },
-            {
-                id: 2,
-                title: "Movie",
-                image: "img2",
-                copy: "The attack of clones",
-            },
-            {
-                id: 3,
-                title: "Movie",
-                image: "img3",
-                copy: "Revenge of the sith",
-            },
-            { id: 4, title: "Movie", image: "img4", copy: "A new hope" },
-            {
-                id: 5,
-                title: "Movie",
-                image: "img5",
-                copy: "Return of the jedi",
-            },
-        ];
         let lines = [];
+        let itemsData = this.items;
+
         return {
-            items,
+            itemsData,
             lines,
-            timer: null,
             currentIndex: 0,
-            prevIndex: items.length,
         };
     },
     mounted() {
-        this.items[
-            Math.abs(this.currentIndex + 1) % this.items.length
+        this.itemsData[
+            Math.abs(this.currentIndex + 1) % this.itemsData.length
         ].next = true;
-        this.items[
-            Math.abs(this.currentIndex) % this.items.length
+        this.itemsData[
+            Math.abs(this.currentIndex) % this.itemsData.length
         ].active = true;
-        //animate
-        this.items.map((value, key) => {
-            console.log("map: ", value.id);
-
+        // Slipt Text and setup animation
+        this.itemsData.map((value) => {
             let splitItems = new SplitText(this.$refs[value.id], {
                 type: "lines",
             });
@@ -120,42 +89,37 @@ export default {
             id === "next"
                 ? (this.currentIndex += 1)
                 : (this.currentIndex = id - 1);
-            this.items.forEach((object) => {
+            const activeIndex =
+                Math.abs(this.currentIndex) % this.itemsData.length;
+            const prevIndex =
+                activeIndex === 0 ? this.lines.length - 1 : activeIndex - 1;
+
+            this.itemsData.forEach((object) => {
                 delete object["active"];
                 delete object["next"];
                 delete object["prev"];
             });
-            this.items[
-                Math.abs(this.currentIndex) % this.items.length
-            ].active = true;
-            this.items[
-                Math.abs(this.currentIndex - 1) % this.items.length
-            ].prev = true;
-            this.items[
-                Math.abs(this.currentIndex + 1) % this.items.length
+            this.itemsData[activeIndex].active = true;
+            this.itemsData[prevIndex].prev = true;
+            this.itemsData[
+                Math.abs(this.currentIndex + 1) % this.itemsData.length
             ].next = true;
-            gsap.to(
-                this.lines[
-                    (Math.abs(this.currentIndex) % this.items.length) - 1
-                ],
-                {
-                    opacity: 0,
-                    y: -10,
-                    ease: "back",
-                    stagger: 0.2,
-                }
-            );
-            gsap.to(
-                this.lines[Math.abs(this.currentIndex) % this.items.length],
-                {
-                    duration: 1,
-                    opacity: 1,
-                    y: 0,
-                    delay: 0.8,
-                    ease: "back",
-                    stagger: 0.2,
-                }
-            );
+            gsap.to(this.lines[prevIndex], {
+                opacity: 0,
+                y: -10,
+                delay: 0.2,
+                duration: 0.2,
+                ease: "back",
+                stagger: 0.1,
+            });
+            gsap.to(this.lines[activeIndex], {
+                duration: 1,
+                opacity: 1,
+                y: 0,
+                delay: 0.8,
+                ease: "back",
+                stagger: 0.2,
+            });
         },
     },
 };
