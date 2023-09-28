@@ -32,15 +32,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-/* force some scrollbars */
-body {
-    min-height: 400vh;
-}
 .hero-section {
     position: relative;
     overflow: hidden;
-    font-size: 40px;
     font: 900 9vw/1 sans-serif;
-    min-height: 100vh;
+    //force scrool bar
+    min-height: 50vh;
 }
 </style>
